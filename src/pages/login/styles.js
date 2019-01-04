@@ -1,27 +1,23 @@
+const flex = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+}
+
+
 export default {
   root: {
-    display: 'flex',
+    ...flex,
     height: '100vh',
-    width: '100vw',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
-  form: {
-    padding: '20px 50px',
+  paper: {
+    ...flex,
+    width: 400,
+    height: 400,
   },
 
   button: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginTop: '20px',
+    ...flex,
   },
-
-  title: {
-    textAlign: 'center',
-    fontFamily: 'inherit',
-  },
-};
-
-
-
+}

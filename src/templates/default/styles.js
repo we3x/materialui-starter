@@ -1,6 +1,23 @@
+const a = {
+  textDecoration: 'none',
+}
+
+
 export default {
-  content: {
-    width: '100%',
-    height: '100%',
+  flex: {
+    flex: 1,
   },
-};
+
+  menu: {
+    width: 200,
+  },
+
+  a: {
+    ...a,
+  },
+
+  login: {
+    ...a,
+    color: 'white',
+  },
+}

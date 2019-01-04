@@ -1,19 +1,36 @@
 import React, { Component } from 'react'
-import Paper from 'material-ui/Paper'
-import Template from '../../templates/default'
+import PropTypes from 'prop-types'
+import { observer } from 'mobx-react'
+import Template from 'templates/default'
+import store from 'store'
 
 
 class Landing extends Component {
+  componentWillMount() {
+    this.props.store.title.title = 'Landing'
+  }
+
   render() {
     return (
       <Template>
-        <Paper>
-          Landing
-        </Paper>
+        Landing Page
       </Template>
-    );
+    )
   }
 }
 
 
-export default Landing;
+Landing.propTypes = {
+  store: PropTypes.shape({
+    title: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+    }).isRequired,
+    todo: PropTypes.shape({
+      addTodo: PropTypes.func.isRequired,
+      todos: PropTypes.arrayOf(PropTypes.shape()).isRequired,
+    }).isRequired,
+  }),
+}
+
+
+export default observer((props) => <Landing {...props} store={store} />)

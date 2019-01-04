@@ -1,122 +1,101 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import RaisedButton from 'material-ui/RaisedButton';
-import TextField from 'material-ui/TextField';
-import Snackbar from 'material-ui/Snackbar';
-import Paper from 'material-ui/Paper';
-import { errors } from '../../constants';
-import { isLoggedIn } from '../../utils';
-import actions from './actions';
-import styles from './styles';
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import { withRouter } from 'react-router-dom'
+import { observer } from 'mobx-react'
+import Button from '@material-ui/core/Button'
+import Paper from '@material-ui/core/Paper'
+import TextField from '@material-ui/core/TextField'
+import EmptyTemplate from 'templates/empty'
+import store from 'store'
+import styles from './styles'
 
 
-const mapStateToProps = (state) => ({
-  token: state.login.token,
-  status: state.login.status,
-  error: state.login.error,
-});
-
-
-class Login extends React.Component {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  }
-
-  static propTypes = {
-    children: PropTypes.node,
-    status: PropTypes.string,
-    error: PropTypes.string,
-    reset: PropTypes.func.isRequired,
-    login: PropTypes.func.isRequired,
-  }
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      email: '',
-      password: '',
-    };
-    this.handleEmailChange = (event) => {
-      this.setState({ email: event.target.value });
-    };
-
-    this.handlePasswordChange = (event) => {
-      this.setState({ password: event.target.value });
-    };
-
-    this.handleSubmit = (event) => {
-      event.preventDefault();
-      this.props.login(this.state.email, this.state.password);
-    };
-
-    this.handleNotificationClose = () => {
-      this.setState({ status: '', message: '' });
-    };
-  }
-
-  componentWillMount() {
-    if (isLoggedIn()) {
-      this.context.router.history.push('/');
+class Login extends Component {
+  handleSubmit = async (event) => {
+    event.preventDefault()
+    const { auth, error } = this.props.store
+    await auth.login()
+    auth.password = ''
+    if (auth.auth) {
+      this.props.history.push('/')
+    } else {
+      error.message = auth.error
+      error.open = true
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.status === 'error') {
-      this.setState({ status: 'error', message: nextProps.error });
-      this.props.reset();
-    }
+  handleEmail = (event) => {
+    const { auth } = this.props.store
+    auth.email = event.target.value
   }
 
-  shouldComponentUpdate() {
-    if (isLoggedIn()) {
-      this.context.router.history.push('/');
-      return false;
-    }
-    return true;
+  handlePassword = (event) => {
+    const { auth } = this.props.store
+    auth.password = event.target.value
   }
-
 
   render() {
-    const notificationOpen = this.state.status === 'error';
-    const notification = notificationOpen ? errors.login[this.state.message] : '';
+    const { auth } = this.props.store
     return (
-      <div style={styles.root}>
-        <Paper zDepth={3}>
-          <form style={styles.form} onSubmit={this.handleSubmit}>
-            <h1 style={styles.title}>Login</h1>
+      <EmptyTemplate>
+        <div style={styles.root}>
+          <Paper style={styles.paper}>
             <div>
-              <TextField
-                floatingLabelText="Email"
-                onChange={this.handleEmailChange}
-                autoFocus
-                required
-              />
+              <h1>Login</h1>
+              <form style={styles.form} onSubmit={this.handleSubmit}>
+                <div>
+                  <TextField
+                    label="Email"
+                    margin="normal"
+                    onChange={this.handleEmail}
+                    value={auth.email}
+                    type="email"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Password"
+                    type="password"
+                    margin="normal"
+                    onChange={this.handlePassword}
+                    value={auth.password}
+                    required
+                  />
+                </div>
+                <div style={styles.button}>
+                  <Button variant="contained" type="submit">
+                    Login
+                  </Button>
+                </div>
+              </form>
             </div>
-            <div>
-              <TextField
-                floatingLabelText="Password"
-                type="password"
-                onChange={this.handlePasswordChange}
-                required
-              />
-            </div>
-            <div style={styles.button}>
-              <RaisedButton label="login" type="submit" />
-            </div>
-          </form>
-        </Paper>
-        <Snackbar
-          open={notificationOpen}
-          message={notification}
-          autoHideDuration={4000}
-          action="close"
-          onActionTouchTap={this.handleNotificationClose}
-          onRequestClose={this.handleNotificationClose}
-        />
-      </div>
-    );
+          </Paper>
+        </div>
+      </EmptyTemplate>
+    )
   }
 }
 
-export default connect(mapStateToProps, actions)(Login);
+
+Login.propTypes = {
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }).isRequired,
+  store: PropTypes.shape({
+    auth: PropTypes.shape({
+      auth: PropTypes.bool.isRequired,
+      email: PropTypes.string.isRequired,
+      login: PropTypes.func.isRequired,
+      password: PropTypes.string.isRequired,
+    }).isRequired,
+    error: PropTypes.shape({
+      message: PropTypes.string.isRequired,
+      open: PropTypes.bool.isRequired,
+    }).isRequired,
+  }).isRequired,
+}
+
+
+export default withRouter(observer((props) => <Login {...props} store={store} />))
